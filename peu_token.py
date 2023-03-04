@@ -1,6 +1,6 @@
 from token_type import TokenType
 
-class Token:
+class PeuToken:
     def __init__(
         self, 
         type: TokenType, 

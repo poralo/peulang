@@ -1,6 +1,6 @@
 #from peu import Peu
 from token_type import TokenType
-from token import Token
+from peu_token import PeuToken
 
 class Scanner:
     keywords = {
@@ -35,7 +35,7 @@ class Scanner:
             self._start = self._current
             self._scan_token()
 
-        self._tokens.append(Token(TokenType.EOF, "", None, self._line))
+        self._tokens.append(PeuToken(TokenType.EOF, "", None, self._line))
         return self._tokens
 
     def _isAtEnd(self) -> bool:
@@ -133,7 +133,7 @@ class Scanner:
 
     def _add_token_literal(self, type: TokenType, literal: object):
         text = self._source[self._start:self._current]
-        self._tokens.append(Token(type, text, literal, self._line))
+        self._tokens.append(PeuToken(type, text, literal, self._line))
 
     def string(self):
         while self._peek() != '"' and not self._isAtEnd():
