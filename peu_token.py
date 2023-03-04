@@ -14,4 +14,4 @@ class PeuToken:
         self.line = line
 
     def __repr__(self) -> str:
-        return f"{self.type} {self.lexeme} {self.literal}"
+        return f"PeuToken({self.type}, '{self.lexeme}', {self.literal}, {self.line})"
