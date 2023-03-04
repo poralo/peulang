@@ -46,6 +46,9 @@ class {class_name}({base_name}):
 
     def accept(self, visitor):
         return visitor.visit_{class_name.lower()}(self)
+
+    def __repr__(self) -> str:
+        return f"{class_name}({", ".join([f"{{self.{field_name}}}" for (_, field_name) in fields_values])})"
 """
 
 def main():
