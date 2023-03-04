@@ -1,5 +1,5 @@
 from ast_printer import AstPrinter
-from expression import Binary, Expr, Grouping, Literal, Unary
+from expr import Binary, Expr, Grouping, Literal, Unary
 from peu_token import PeuToken
 from token_type import TokenType
 

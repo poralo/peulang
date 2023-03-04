@@ -1,4 +1,4 @@
-from expression import Binary, Expr, Grouping, Literal, Unary, Visitor
+from expr import Binary, Expr, Grouping, Literal, Unary, Visitor
 from peu_token import PeuToken
 from token_type import TokenType
 

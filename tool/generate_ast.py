@@ -3,7 +3,7 @@ from pathlib import Path
 
 def define_ast(output_dir: str, base_name: str, types: list[str]) -> None:
     path = Path(output_dir)
-    path = path.joinpath("expression.py")
+    path = path.joinpath(f"{base_name.lower()}.py")
 
     with open(path, "w") as f:
         f.write("from peu_token import PeuToken\n\n")
