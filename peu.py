@@ -1,5 +1,9 @@
 import sys
+from peu_parser import PeuParser
+from peu_token import PeuToken
 from scanner import Scanner
+from ast_printer import AstPrinter
+from token_type import TokenType
 
 class Peu:
     had_error = False
@@ -8,8 +12,14 @@ class Peu:
         scanner = Scanner(source)
         tokens = scanner.scan_tokens()
 
-        for token in tokens:
-            print(token)
+        parser = PeuParser(tokens)
+        expr = parser.parse()
+
+        # Stop si il y a eu une erreur de syntaxe
+        if self.had_error or expr is None:
+            return
+        
+        print(AstPrinter().print(expr))
 
     def run_file(self, path: str) -> None:
         with open(path) as file:
@@ -27,8 +37,11 @@ class Peu:
             Peu.had_error = False
 
     @staticmethod
-    def error(line: int, message: str) -> None:
-        Peu.report(line, "", message)
+    def error(token: PeuToken, message: str) -> None:
+        if token.type == TokenType.EOF:
+            Peu.report(token.line, " at end", message)
+        else:
+            Peu.report(token.line, f" at '{token.lexeme}'", message)
 
     @staticmethod
     def report(line: int, where: str, message: str) -> None:
