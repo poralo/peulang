@@ -1,6 +1,7 @@
 from ast_printer import AstPrinter
 from expr import Binary, Expr, Grouping, Literal, Unary
 from peu_token import PeuToken
+from stmt import Expression, Print, Stmt
 from token_type import TokenType
 
 
@@ -9,11 +10,30 @@ class PeuParser:
         self._tokens = tokens
         self._current = 0
 
-    def parse(self) -> Expr:
-        try:
-            return self._expression()
-        except ParseError:
-            return None
+    def parse(self) -> list[Stmt]:
+        statements = []
+        while not self._is_at_end():
+            statements.append(self._statement())
+
+        return statements
+
+    def _statement(self) -> Stmt:
+        if self._match(TokenType.PRINT):
+            return self._print_statement()
+        
+        return self._expression_statement()
+    
+    def _print_statement(self) -> Stmt:
+        value = self._expression()
+        self._consume(TokenType.SEMICOLON, "Expect ';' after value.")
+
+        return Print(value)
+
+    def _expression_statement(self) -> Stmt:
+        value = self._expression()
+        self._consume(TokenType.SEMICOLON, "Expect ';' after value.")
+
+        return Expression(value)
 
     def _expression(self) -> Expr:
         return self._equality()

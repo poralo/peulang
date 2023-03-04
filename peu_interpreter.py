@@ -1,16 +1,20 @@
-from expr import Binary, Expr, Grouping, Literal, Unary, Visitor
+from expr import Binary, Expr, Grouping, Literal, Unary, Visitor as ExprVisitor
 from peu_token import PeuToken
+from stmt import Expression, Print, Stmt, Visitor as StmtVisitor
 from token_type import TokenType
 
 
-class Interpreter(Visitor):
-    def interpret(self, expression: Expr) -> None:
+class Interpreter(ExprVisitor, StmtVisitor):
+    def interpret(self, statements: list[Stmt]) -> None:
         try:
-            value = self._evaluate(expression)
-            print(self._stringify(value))
+            for statement in statements:
+                self._execute(statement)
         except PeuRuntimeError:
             pass
-    
+
+    def _execute(self, statement: Stmt):
+        statement.accept(self)
+
     def _stringify(self, value: object) -> str:
         if value is None:
             return "null"
@@ -21,6 +25,13 @@ class Interpreter(Visitor):
             return "false"
 
         return str(value)
+
+    def visit_expression(self, stmt: Expression):
+        self._evaluate(stmt.expression)
+
+    def visit_print(self, stmt: Print):
+        value = self._evaluate(stmt.expression)
+        print(self._stringify(value))
 
     def visit_binary(self, expr: Binary) -> object:
         left = self._evaluate(expr.left)
@@ -52,8 +63,9 @@ class Interpreter(Visitor):
             elif isinstance(left, str) and isinstance(right, str):
                 return str(left) + str(right)
 
-            raise PeuRuntimeError(expr.operator, 
-                "Operands must be two numbers or two strings.")
+            raise PeuRuntimeError(
+                expr.operator, "Operands must be two numbers or two strings."
+            )
         elif expr.operator.type == TokenType.SLASH:
             self._check_number_operands(expr.operator, left, right)
             return float(left) / float(right)
@@ -61,7 +73,7 @@ class Interpreter(Visitor):
             self._check_number_operands(expr.operator, left, right)
             return float(left) * float(right)
 
-        return None 
+        return None
 
     def visit_grouping(self, expr: Grouping) -> object:
         return self._evaluate(expr.expression)
@@ -74,10 +86,10 @@ class Interpreter(Visitor):
 
         if expr.operator.type == TokenType.MINUS:
             self._check_number_operand(expr.operator, right)
-            return - float(right)
+            return -float(right)
         elif expr.operator.type == TokenType.BANG:
             return not self._is_truthy(right)
-        
+
         return None
 
     def _evaluate(self, expr: Expr) -> object:
@@ -94,24 +106,19 @@ class Interpreter(Visitor):
             return str(value) == ""
 
         return True
-    
+
     def _is_equal(self, left: object, right: object) -> bool:
         return left == right
 
     def _check_number_operand(
-        self, 
-        operator: PeuToken, 
-        operand: object
+        self, operator: PeuToken, operand: object
     ) -> bool:
         if isinstance(operand, float):
             return
         raise PeuRuntimeError(operator, "Operand must be a number.")
 
     def _check_number_operands(
-        self, 
-        operator: PeuToken, 
-        left: object,
-        right: object
+        self, operator: PeuToken, left: object, right: object
     ) -> bool:
         if isinstance(left, float) and isinstance(right, float):
             return

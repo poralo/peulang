@@ -16,14 +16,14 @@ class Peu:
         tokens = scanner.scan_tokens()
 
         parser = PeuParser(tokens)
-        expr = parser.parse()
+        statements = parser.parse()
 
         # Stop si il y a eu une erreur de syntaxe
-        if self.had_error or expr is None:
+        if self.had_error:
             return
 
         # print(AstPrinter().print(expr))
-        Peu.interpreter.interpret(expr)
+        Peu.interpreter.interpret(statements)
 
     def run_file(self, path: str) -> None:
         with open(path) as file:
