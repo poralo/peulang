@@ -1,7 +1,7 @@
 from ast_printer import AstPrinter
-from expr import Binary, Expr, Grouping, Literal, Unary
+from expr import Binary, Expr, Grouping, Literal, Unary, Variable
 from peu_token import PeuToken
-from stmt import Expression, Print, Stmt
+from stmt import Expression, Print, Stmt, Var
 from token_type import TokenType
 
 
@@ -13,16 +13,38 @@ class PeuParser:
     def parse(self) -> list[Stmt]:
         statements = []
         while not self._is_at_end():
-            statements.append(self._statement())
+            statements.append(self._declaration())
 
         return statements
+
+    def _declaration(self):
+        try:
+            if self._match(TokenType.VAR):
+                return self._var_declare()
+
+            return self._statement()
+        except ParseError:
+            self._synchronize()
+            return None
+
+    def _var_declare(self):
+        name = self._consume(TokenType.IDENTIFIER, "Expect variable name.")
+
+        initializer = None
+        if self._match(TokenType.EQUAL):
+            initializer = self._expression()
+
+        self._consume(
+            TokenType.SEMICOLON, "Expect ';' after variable declaration."
+        )
+        return Var(name, initializer)
 
     def _statement(self) -> Stmt:
         if self._match(TokenType.PRINT):
             return self._print_statement()
-        
+
         return self._expression_statement()
-    
+
     def _print_statement(self) -> Stmt:
         value = self._expression()
         self._consume(TokenType.SEMICOLON, "Expect ';' after value.")
@@ -37,7 +59,7 @@ class PeuParser:
 
     def _expression(self) -> Expr:
         return self._equality()
-    
+
     def _equality(self) -> Expr:
         """equality       → comparison ( ( "!=" | "==" ) comparison )* ;"""
         expr = self._comparison()
@@ -48,22 +70,23 @@ class PeuParser:
             expr = Binary(expr, operator, right)
 
         return expr
-    
+
     def _comparison(self) -> Expr:
         """comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;"""
         expr = self._term()
 
         while self._match(
-            TokenType.GREATER, 
-            TokenType.GREATER_EQUAL, 
-            TokenType.LESS, 
-            TokenType.LESS_EQUAL):
+            TokenType.GREATER,
+            TokenType.GREATER_EQUAL,
+            TokenType.LESS,
+            TokenType.LESS_EQUAL,
+        ):
             operator = self._previous()
             right = self._term()
             expr = Binary(expr, operator, right)
 
         return expr
-    
+
     def _term(self) -> Expr:
         """term           → factor ( ( "-" | "+" ) factor )* ;"""
         expr = self._factor()
@@ -74,7 +97,7 @@ class PeuParser:
             expr = Binary(expr, operator, right)
 
         return expr
-    
+
     def _factor(self) -> Expr:
         """factor         → unary ( ( "/" | "*" ) unary )* ;"""
         expr = self._unary()
@@ -85,7 +108,7 @@ class PeuParser:
             expr = Binary(expr, operator, right)
 
         return expr
-    
+
     def _unary(self) -> Expr:
         """unary          → ( "!" | "-" ) unary | primary ;"""
 
@@ -93,41 +116,46 @@ class PeuParser:
             operator = self._previous()
             right = self._unary()
             return Unary(operator, right)
-        
+
         return self._primary()
-    
+
     def _primary(self) -> Expr:
         """primary        → NUMBER | STRING | "true" | "false" | "null" | "(" expression ")" ;"""
         if self._match(TokenType.FALSE):
             return Literal(False)
-        
+
         if self._match(TokenType.TRUE):
             return Literal(True)
-        
+
         if self._match(TokenType.NULL):
             return Literal(None)
-        
+
         if self._match(TokenType.NUMBER, TokenType.STRING):
             literalToken = self._previous()
             return Literal(literalToken.literal)
-        
+
+        if self._match(TokenType.IDENTIFIER):
+            return Variable(self._previous())
+
         if self._match(TokenType.LEFT_PAREN):
             expr = self._expression()
-            self._consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.")
+            self._consume(
+                TokenType.RIGHT_PAREN, "Expect ')' after expression."
+            )
             return Grouping(expr)
-        
+
         raise self._error(self._peek(), "Expect expression.")
-        
+
     def _consume(self, type: TokenType, message: str) -> PeuToken:
         if self._check(type):
             return self._advance()
-        
+
         raise self._error(self._peek(), message)
-    
+
     def _error(self, token, message: str) -> None:
-        #Peu.error(token, message)
+        # Peu.error(token, message)
         return ParseError()
-    
+
     def _synchronize(self) -> None:
         self._advance()
 
@@ -145,46 +173,47 @@ class PeuParser:
                 or self._peek().type == TokenType.RETURN
             ):
                 return
-            
+
             self._advance()
-    
+
     def _match(self, *types: TokenType) -> bool:
         for type in types:
             if self._check(type):
                 self._advance()
                 return True
-            
+
         return False
-    
+
     def _check(self, type: TokenType) -> bool:
         if self._is_at_end():
             return False
-        
+
         return self._peek().type == type
 
     def _advance(self) -> PeuToken:
         if not self._is_at_end():
             self._current += 1
-        
+
         return self._previous()
-    
+
     def _is_at_end(self) -> bool:
         return self._peek().type == TokenType.EOF
-    
+
     def _peek(self) -> PeuToken:
         return self._tokens[self._current]
-    
+
     def _previous(self) -> PeuToken:
         return self._tokens[self._current - 1]
-    
+
 
 class ParseError(RuntimeError):
     pass
 
+
 def main():
     # - 123 * (45.67)
     tokens = [
-        PeuToken(TokenType.MINUS, '-', None, 1),
+        PeuToken(TokenType.MINUS, "-", None, 1),
         PeuToken(TokenType.NUMBER, "123", 123, 1),
         PeuToken(TokenType.STAR, "*", None, 1),
         PeuToken(TokenType.LEFT_PAREN, "(", None, 1),
@@ -197,6 +226,7 @@ def main():
     expr = parser.parse()
     print(expr)
     print(printer.print(expr))
+
 
 if __name__ == "__main__":
     main()

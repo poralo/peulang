@@ -54,6 +54,18 @@ class Unary(Expr):
     def __repr__(self) -> str:
         return f"Unary({self.operator}, {self.right})"
 
+class Variable(Expr):
+    def __init__(self, name: PeuToken) -> None:
+        super().__init__()
+
+        self.name = name
+
+    def accept(self, visitor):
+        return visitor.visit_variable(self)
+
+    def __repr__(self) -> str:
+        return f"Variable({self.name})"
+
 class Visitor:
     def visit_binary(self, expr: Binary): raise NotImplementedError
 
@@ -62,4 +74,6 @@ class Visitor:
     def visit_literal(self, expr: Literal): raise NotImplementedError
 
     def visit_unary(self, expr: Unary): raise NotImplementedError
+
+    def visit_variable(self, expr: Variable): raise NotImplementedError
 

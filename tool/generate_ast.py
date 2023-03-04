@@ -1,6 +1,7 @@
 import sys
 from pathlib import Path
 
+
 def define_ast(output_dir: str, base_name: str, types: list[str]) -> None:
     path = Path(output_dir)
     path = path.joinpath(f"{base_name.lower()}.py")
@@ -13,13 +14,14 @@ def define_ast(output_dir: str, base_name: str, types: list[str]) -> None:
         for type in types:
             class_name = type.split(":")[0].strip()
             fields = type.split(":")[1].strip()
-            
+
             class_type = define_type(base_name, class_name, fields)
             f.write(class_type)
 
         f.write("\n")
         visitor_type = define_visitor(base_name, types)
         f.write(visitor_type)
+
 
 def define_visitor(base_name, types):
     buffer = "class Visitor:\n"
@@ -30,13 +32,19 @@ def define_visitor(base_name, types):
 
     return buffer
 
+
 def define_type(base_name, class_name, field_list):
     fields_values = []
     for field in field_list.split(","):
         splited_field = field.strip().split(" ")
-        fields_values.append((splited_field[0], splited_field[1])) 
+        fields_values.append((splited_field[0], splited_field[1]))
 
-    fields = "\n        ".join([f"self.{field_name} = {field_name}" for (_, field_name) in fields_values])
+    fields = "\n        ".join(
+        [
+            f"self.{field_name} = {field_name}"
+            for (_, field_name) in fields_values
+        ]
+    )
     return f"""
 class {class_name}({base_name}):
     def __init__(self, {", ".join([f"{field_name}: {field_class}" for (field_class, field_name) in fields_values])}) -> None:
@@ -51,23 +59,35 @@ class {class_name}({base_name}):
         return f"{class_name}({", ".join([f"{{self.{field_name}}}" for (_, field_name) in fields_values])})"
 """
 
+
 def main():
     if len(sys.argv) != 2:
         sys.stderr.write("Usage: python generate_ast.py <output directory>")
         sys.exit(64)
-    
-    output_dir = sys.argv[1]
-    define_ast(output_dir, "Expr", [
-        "Binary   : Expr left, PeuToken operator, Expr right",
-        "Grouping : Expr expression",
-        "Literal  : object value",
-        "Unary    : PeuToken operator, Expr right"
-    ])
 
-    define_ast(output_dir, "Stmt", [
-        "Expression : Expr expression",
-        "Print      : Expr expression"
-    ])
+    output_dir = sys.argv[1]
+    define_ast(
+        output_dir,
+        "Expr",
+        [
+            "Binary   : Expr left, PeuToken operator, Expr right",
+            "Grouping : Expr expression",
+            "Literal  : object value",
+            "Unary    : PeuToken operator, Expr right",
+            "Variable : PeuToken name",
+        ],
+    )
+
+    define_ast(
+        output_dir,
+        "Stmt",
+        [
+            "Expression : Expr expression",
+            "Print      : Expr expression",
+            "Var        : PeuToken name, Expr initializer",
+        ],
+    )
+
 
 if __name__ == "__main__":
     main()
