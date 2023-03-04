@@ -1,4 +1,5 @@
 import sys
+from peu_interpreter import Interpreter
 from peu_parser import PeuParser
 from peu_token import PeuToken
 from scanner import Scanner
@@ -7,6 +8,8 @@ from token_type import TokenType
 
 class Peu:
     had_error = False
+    had_runtime_error = False
+    interpreter = Interpreter()
         
     def run(self, source: str) -> None:
         scanner = Scanner(source)
@@ -18,15 +21,19 @@ class Peu:
         # Stop si il y a eu une erreur de syntaxe
         if self.had_error or expr is None:
             return
-        
-        print(AstPrinter().print(expr))
+
+        # print(AstPrinter().print(expr))
+        Peu.interpreter.interpret(expr)
 
     def run_file(self, path: str) -> None:
         with open(path) as file:
             self.run(file.read())
 
-        if self.had_error:
+        if Peu.had_error:
             sys.exit(65)
+
+        if Peu.had_runtime_error:
+            sys.exit(70)
 
     def run_prompt(
         self,
