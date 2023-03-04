@@ -37,7 +37,7 @@ class TokenType(Enum):
     FUN = 27
     FOR = 28
     IF = 29
-    NIL = 30
+    NULL = 30
     OR = 31
     PRINT = 32
     RETURN = 33
