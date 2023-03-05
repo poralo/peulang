@@ -4,6 +4,18 @@ from peu_token import PeuToken
 class Stmt:
     def accept(self, visitor): pass
 
+class Block(Stmt):
+    def __init__(self, statements: list[Stmt]) -> None:
+        super().__init__()
+
+        self.statements = statements
+
+    def accept(self, visitor):
+        return visitor.visit_block(self)
+
+    def __repr__(self) -> str:
+        return f"Block({self.statements})"
+
 class Expression(Stmt):
     def __init__(self, expression: Expr) -> None:
         super().__init__()
@@ -42,6 +54,8 @@ class Var(Stmt):
         return f"Var({self.name}, {self.initializer})"
 
 class Visitor:
+    def visit_block(self, stmt: Block): raise NotImplementedError
+
     def visit_expression(self, stmt: Expression): raise NotImplementedError
 
     def visit_print(self, stmt: Print): raise NotImplementedError

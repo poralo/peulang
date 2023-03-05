@@ -83,6 +83,7 @@ def main():
         output_dir,
         "Stmt",
         [
+            "Block      : list[Stmt] statements",
             "Expression : Expr expression",
             "Print      : Expr expression",
             "Var        : PeuToken name, Expr initializer",

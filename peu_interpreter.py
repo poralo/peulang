@@ -2,7 +2,7 @@ from environment import Environment
 from error import PeuRuntimeError
 from expr import Assign, Binary, Expr, Grouping, Literal, Unary, Variable, Visitor as ExprVisitor
 from peu_token import PeuToken
-from stmt import Expression, Print, Stmt, Var, Visitor as StmtVisitor
+from stmt import Block, Expression, Print, Stmt, Var, Visitor as StmtVisitor
 from token_type import TokenType
 
 
@@ -22,6 +22,17 @@ class Interpreter(ExprVisitor, StmtVisitor):
     def _execute(self, statement: Stmt):
         statement.accept(self)
 
+    def _execute_block(self, statements: list[Stmt], environment: Environment) -> None:
+        previous = self._environment
+
+        try:
+            self._environment = environment
+
+            for statement in statements:
+                self._execute(statement)
+        finally:
+            self._environment = previous
+
     def _stringify(self, value: object) -> str:
         if value is None:
             return "null"
@@ -32,6 +43,9 @@ class Interpreter(ExprVisitor, StmtVisitor):
             return "false"
 
         return str(value)
+    
+    def visit_block(self, stmt: Block) -> None:
+        self._execute_block(stmt.statements, Environment(self._environment))
 
     def visit_expression(self, stmt: Expression):
         self._evaluate(stmt.expression)

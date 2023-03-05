@@ -1,7 +1,7 @@
 from ast_printer import AstPrinter
 from expr import Assign, Binary, Expr, Grouping, Literal, Unary, Variable
 from peu_token import PeuToken
-from stmt import Expression, Print, Stmt, Var
+from stmt import Block, Expression, Print, Stmt, Var
 from token_type import TokenType
 
 
@@ -42,8 +42,20 @@ class PeuParser:
     def _statement(self) -> Stmt:
         if self._match(TokenType.PRINT):
             return self._print_statement()
+        
+        if self._match(TokenType.LEFT_BRACE):
+            return Block(self._block())
 
         return self._expression_statement()
+    
+    def _block(self) -> list[Stmt]:
+        statemements = []
+
+        while not self._check(TokenType.RIGHT_BRACE) and not self._is_at_end():
+            statemements.append(self._declaration())
+
+        self._consume(TokenType.RIGHT_BRACE, "Expect '}' after block.")
+        return statemements
 
     def _print_statement(self) -> Stmt:
         value = self._expression()
