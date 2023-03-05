@@ -1,10 +1,17 @@
-from expr import Binary, Expr, Grouping, Literal, Unary, Visitor as ExprVisitor
+from environment import Environment
+from error import PeuRuntimeError
+from expr import Binary, Expr, Grouping, Literal, Unary, Variable, Visitor as ExprVisitor
 from peu_token import PeuToken
-from stmt import Expression, Print, Stmt, Visitor as StmtVisitor
+from stmt import Expression, Print, Stmt, Var, Visitor as StmtVisitor
 from token_type import TokenType
 
 
 class Interpreter(ExprVisitor, StmtVisitor):
+    def __init__(self) -> None:
+        super().__init__()
+
+        self._environment = Environment()
+
     def interpret(self, statements: list[Stmt]) -> None:
         try:
             for statement in statements:
@@ -32,6 +39,14 @@ class Interpreter(ExprVisitor, StmtVisitor):
     def visit_print(self, stmt: Print):
         value = self._evaluate(stmt.expression)
         print(self._stringify(value))
+
+    def visit_var(self, stmt: Var):
+        value = None
+        if (stmt.initializer != None):
+            value = self._evaluate(stmt.initializer)
+
+        self._environment.define(stmt.name.lexeme, value)
+        return None
 
     def visit_binary(self, expr: Binary) -> object:
         left = self._evaluate(expr.left)
@@ -91,6 +106,9 @@ class Interpreter(ExprVisitor, StmtVisitor):
             return not self._is_truthy(right)
 
         return None
+    
+    def visit_variable(self, expr: Variable) -> object:
+        return self._environment.get(expr.name)
 
     def _evaluate(self, expr: Expr) -> object:
         return expr.accept(self)
@@ -123,11 +141,3 @@ class Interpreter(ExprVisitor, StmtVisitor):
         if isinstance(left, float) and isinstance(right, float):
             return
         raise PeuRuntimeError(operator, "Operands must be a number.")
-
-
-class PeuRuntimeError(RuntimeError):
-    def __init__(self, token: PeuToken, message: str, *args: object) -> None:
-        super().__init__(*args)
-
-        self.token = token
-        self.message = message
