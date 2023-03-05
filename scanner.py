@@ -11,7 +11,7 @@ class Scanner:
         "for": TokenType.FOR,
         "fun": TokenType.FUN,
         "if": TokenType.IF,
-        "nil": TokenType.NULL,
+        "null": TokenType.NULL,
         "or": TokenType.OR,
         "print": TokenType.PRINT,
         "return": TokenType.RETURN,
@@ -93,6 +93,8 @@ class Scanner:
             pass
         elif ch == '\n':
             self._line += 1
+        elif ch == "\"":
+            self.string()
         else:
             if ch.isdigit():
                 self.number()
@@ -149,7 +151,7 @@ class Scanner:
         self._next()
 
         # Trim the surrounding quotes.
-        value = self._source[self._start + 1, self._current - 1]
+        value = self._source[self._start + 1: self._current - 1]
         self._add_token_literal(TokenType.STRING, value)
 
     def number(self):
