@@ -1,5 +1,5 @@
 from ast_printer import AstPrinter
-from expr import Binary, Expr, Grouping, Literal, Unary, Variable
+from expr import Assign, Binary, Expr, Grouping, Literal, Unary, Variable
 from peu_token import PeuToken
 from stmt import Expression, Print, Stmt, Var
 from token_type import TokenType
@@ -56,9 +56,24 @@ class PeuParser:
         self._consume(TokenType.SEMICOLON, "Expect ';' after value.")
 
         return Expression(value)
+    
+    def _assignment(self) -> Expr:
+        expr = self._equality()
+
+        if (self._match(TokenType.EQUAL)):
+            equals = self._previous()
+            value = self._assignment()
+
+            if isinstance(expr, Variable):
+                name = expr.name
+                return Assign(name, value)
+        
+            self._error(equals, "Invalid assignment target.")
+
+        return expr
 
     def _expression(self) -> Expr:
-        return self._equality()
+        return self._assignment()
 
     def _equality(self) -> Expr:
         """equality       → comparison ( ( "!=" | "==" ) comparison )* ;"""

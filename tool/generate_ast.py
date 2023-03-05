@@ -70,6 +70,7 @@ def main():
         output_dir,
         "Expr",
         [
+            "Assign   : PeuToken name, Expr value",
             "Binary   : Expr left, PeuToken operator, Expr right",
             "Grouping : Expr expression",
             "Literal  : object value",

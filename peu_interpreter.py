@@ -1,6 +1,6 @@
 from environment import Environment
 from error import PeuRuntimeError
-from expr import Binary, Expr, Grouping, Literal, Unary, Variable, Visitor as ExprVisitor
+from expr import Assign, Binary, Expr, Grouping, Literal, Unary, Variable, Visitor as ExprVisitor
 from peu_token import PeuToken
 from stmt import Expression, Print, Stmt, Var, Visitor as StmtVisitor
 from token_type import TokenType
@@ -47,6 +47,12 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
         self._environment.define(stmt.name.lexeme, value)
         return None
+    
+    def visit_assign(self, expr: Assign) -> object:
+        value = self._evaluate(expr.value)
+        self._environment.assign(expr.name, value)
+
+        return value
 
     def visit_binary(self, expr: Binary) -> object:
         left = self._evaluate(expr.left)

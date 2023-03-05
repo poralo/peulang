@@ -3,6 +3,19 @@ from peu_token import PeuToken
 class Expr:
     def accept(self, visitor): pass
 
+class Assign(Expr):
+    def __init__(self, name: PeuToken, value: Expr) -> None:
+        super().__init__()
+
+        self.name = name
+        self.value = value
+
+    def accept(self, visitor):
+        return visitor.visit_assign(self)
+
+    def __repr__(self) -> str:
+        return f"Assign({self.name}, {self.value})"
+
 class Binary(Expr):
     def __init__(self, left: Expr, operator: PeuToken, right: Expr) -> None:
         super().__init__()
@@ -67,6 +80,8 @@ class Variable(Expr):
         return f"Variable({self.name})"
 
 class Visitor:
+    def visit_assign(self, expr: Assign): raise NotImplementedError
+
     def visit_binary(self, expr: Binary): raise NotImplementedError
 
     def visit_grouping(self, expr: Grouping): raise NotImplementedError

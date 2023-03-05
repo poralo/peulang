@@ -16,3 +16,11 @@ class Environment:
             raise PeuRuntimeError(name, f"Undefined variable '{name.lexeme}'.")
         
         return value
+    
+    def assign(self, name: PeuToken, value: object) -> None:
+        current_value = self._values.get(name.lexeme)
+
+        if (current_value is None):
+            raise PeuRuntimeError(name, f"Undefined variable '{name.lexeme}'.")
+        
+        self._values[name.lexeme] = value
