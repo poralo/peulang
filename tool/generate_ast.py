@@ -85,6 +85,7 @@ def main():
         [
             "Block      : list[Stmt] statements",
             "Expression : Expr expression",
+            "If         : Expr condition, Stmt then_branch, Stmt else_branch",
             "Print      : Expr expression",
             "Var        : PeuToken name, Expr initializer",
         ],

@@ -2,7 +2,7 @@ from environment import Environment
 from error import PeuRuntimeError
 from expr import Assign, Binary, Expr, Grouping, Literal, Unary, Variable, Visitor as ExprVisitor
 from peu_token import PeuToken
-from stmt import Block, Expression, Print, Stmt, Var, Visitor as StmtVisitor
+from stmt import Block, Expression, If, Print, Stmt, Var, Visitor as StmtVisitor
 from token_type import TokenType
 
 
@@ -49,6 +49,12 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
     def visit_expression(self, stmt: Expression):
         self._evaluate(stmt.expression)
+
+    def visit_if(self, stmt: If) -> None:
+        if self._is_truthy(self._evaluate(stmt.condition)):
+            self._execute(stmt.then_branch)
+        elif stmt.else_branch is not None:
+            self._execute(stmt.else_branch)
 
     def visit_print(self, stmt: Print):
         value = self._evaluate(stmt.expression)
