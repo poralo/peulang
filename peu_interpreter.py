@@ -1,6 +1,6 @@
 from environment import Environment
 from error import PeuRuntimeError
-from expr import Assign, Binary, Expr, Grouping, Literal, Unary, Variable, Visitor as ExprVisitor
+from expr import Assign, Binary, Expr, Grouping, Literal, Logical, Unary, Variable, Visitor as ExprVisitor
 from peu_token import PeuToken
 from stmt import Block, Expression, If, Print, Stmt, Var, Visitor as StmtVisitor
 from token_type import TokenType
@@ -121,6 +121,19 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
     def visit_literal(self, expr: Literal) -> object:
         return expr.value
+    
+    def visit_logical(self, expr: Logical) -> object:
+        left = self._evaluate(expr.left)
+
+        if expr.operator.type == TokenType.OR:
+            if self._is_truthy(left):
+                return left
+        if expr.operator.type == TokenType.AND:
+            if not self._is_truthy(left):
+                return left
+            
+        return self._evaluate(expr.right)
+
 
     def visit_unary(self, expr: Unary) -> object:
         right = self._evaluate(expr.right)

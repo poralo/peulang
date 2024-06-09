@@ -54,6 +54,20 @@ class Literal(Expr):
     def __repr__(self) -> str:
         return f"Literal({self.value})"
 
+class Logical(Expr):
+    def __init__(self, left: Expr, operator: PeuToken, right: Expr) -> None:
+        super().__init__()
+
+        self.left = left
+        self.operator = operator
+        self.right = right
+
+    def accept(self, visitor):
+        return visitor.visit_logical(self)
+
+    def __repr__(self) -> str:
+        return f"Logical({self.left}, {self.operator}, {self.right})"
+
 class Unary(Expr):
     def __init__(self, operator: PeuToken, right: Expr) -> None:
         super().__init__()
@@ -87,6 +101,8 @@ class Visitor:
     def visit_grouping(self, expr: Grouping): raise NotImplementedError
 
     def visit_literal(self, expr: Literal): raise NotImplementedError
+
+    def visit_logical(self, expr: Logical): raise NotImplementedError
 
     def visit_unary(self, expr: Unary): raise NotImplementedError
 

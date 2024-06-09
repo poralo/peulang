@@ -1,5 +1,5 @@
 from ast_printer import AstPrinter
-from expr import Assign, Binary, Expr, Grouping, Literal, Unary, Variable
+from expr import Assign, Binary, Expr, Grouping, Literal, Logical, Unary, Variable
 from peu_token import PeuToken
 from stmt import Block, Expression, If, Print, Stmt, Var
 from token_type import TokenType
@@ -85,7 +85,7 @@ class PeuParser:
         return Expression(value)
     
     def _assignment(self) -> Expr:
-        expr = self._equality()
+        expr = self._or()
 
         if (self._match(TokenType.EQUAL)):
             equals = self._previous()
@@ -96,6 +96,26 @@ class PeuParser:
                 return Assign(name, value)
         
             self._error(equals, "Invalid assignment target.")
+
+        return expr
+
+    def _or(self) -> Expr:
+        expr = self._and()
+
+        while (self._match(TokenType.OR)):
+            operator = self._previous()
+            right = self._and()
+            expr = Logical(expr, operator, right)
+
+        return expr
+    
+    def _and(self) -> Expr:
+        expr = self._equality()
+
+        while (self._match(TokenType.AND)):
+            operator = self._previous()
+            right = self._equality()
+            expr = Logical(expr, operator, right)
 
         return expr
 

@@ -74,6 +74,7 @@ def main():
             "Binary   : Expr left, PeuToken operator, Expr right",
             "Grouping : Expr expression",
             "Literal  : object value",
+            "Logical  : Expr left, PeuToken operator, Expr right",
             "Unary    : PeuToken operator, Expr right",
             "Variable : PeuToken name",
         ],
